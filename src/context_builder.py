@@ -12,8 +12,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
-import pandas as pd
-
 logger = logging.getLogger(__name__)
 
 
@@ -182,6 +180,7 @@ class ContextBuilder:
 
     @staticmethod
     def _extract_fee_snapshot(features_json: str) -> tuple[dict, float]:
+        import pandas as pd
         if pd.isna(features_json) or not features_json:
             return {}, 0.0
         try:
@@ -192,7 +191,8 @@ class ContextBuilder:
             return {}, 0.0
 
     @staticmethod
-    def build_from_row(row: pd.Series) -> RoomContext:
+    def build_from_row(row: "pd.Series") -> RoomContext:
+        import pandas as pd
         factors = ContextBuilder._parse_simulation_factors(
             row.get("simulation_factors_json", "{}")
         )
@@ -302,6 +302,7 @@ class ContextBuilder:
 
     @staticmethod
     def build_from_csv(filepath: str, actions_filepath: Optional[str] = None, scores_filepath: Optional[str] = None) -> list[RoomContext]:
+        import pandas as pd
         logger.info("Loading CSV: %s", filepath)
         df = pd.read_csv(filepath)
         logger.info("Loaded %d rows", len(df))

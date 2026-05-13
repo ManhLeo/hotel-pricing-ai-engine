@@ -1,0 +1,17 @@
+# Environment
+.env
+venv/
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+
+# Output
+data/output/*.json
+engine.log
+
+# OS
+Thumbs.db
+.DS_Store

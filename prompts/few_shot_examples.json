@@ -1,0 +1,20 @@
+[
+  {
+    "input": "=== ROOM 6 (Partner 2) ===\nCurrent Price: 100,000\nExpected Revenue (EPR): 120,000\nPrice Gap vs Market: +45.0%\nAnchor Revenue Used: 120,000\n\nRecommended Discount: 5%\n  - Inquiry Uplift: +12.8%\n  - Reservation Uplift: +7.0%\n  - Revenue Impact: +3.8%\n  - Total Uplift Score: +3.80\n\nConfidence Score: 90/100\nBenchmark Strength: medium\nIs Recommended: Yes\n\nAction Type: price_adjustment\nSimulation Type: heuristic",
+    "output": {
+      "situation": "The property is currently priced 45% above the market average. With an EPR of 120,000 and a high Confidence Score of 90/100, the data is highly reliable for strategic adjustments.",
+      "why": "A 5% discount yields the best balance: projected to increase inquiries by 12.8% and reservations by 7.0%, resulting in a positive net revenue impact of +3.8%.",
+      "action": "Apply a 5% discount on the rent_fee. This adjustment is sufficient to stimulate demand while maintaining healthy profit margins.",
+      "next_steps": "Monitor performance for 7-14 days. If inquiry growth exceeds 10%, maintain current settings. Otherwise, consider increasing the discount to 10%."
+    }
+  },
+  {
+    "input": "=== ROOM 9 (Partner 2) ===\nCurrent Price: 100,000\nExpected Revenue (EPR): 2,100,000\nPrice Gap vs Market: -15.6%\nAnchor Revenue Used: 2,100,000\n\nRecommended Discount: 0%\n  - Inquiry Uplift: +0.0%\n  - Reservation Uplift: +0.0%\n  - Revenue Impact: +0.0%\n  - Total Uplift Score: +0.00\n\nConfidence Score: 32/100\nBenchmark Strength: broad\nIs Recommended: Yes\n\nAction Type: campaign_launch\nSimulation Type: heuristic",
+    "output": {
+      "situation": "This is a new listing with a low Confidence Score of 32/100, indicating limited historical data. The price is already 15.6% below the market average.",
+      "why": "Lack of historical signal (Inquiries, Bookings, Reviews) makes it premature to suggest further discounts. The price is already competitive enough to attract initial traffic.",
+      "action": "Prioritize visibility campaigns to boost traffic and gather real-world signal. Do not decrease the price further as it may undervalue the property.",
+      "next_steps": "After 14-21 days of operation and collecting 5-10 inquiries, the system will re-evaluate the strategy with higher confidence."
+    }
+  }
+]

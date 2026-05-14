@@ -2,14 +2,13 @@ import logging
 import sys
 import json
 import os
-from typing import List, Optional
+from typing import List, Optional, Dict
 
-# Thêm thư mục gốc vào sys.path để có thể import từ src và config
-# Khi chạy trên Vercel, thư mục gốc là /var/task
+# Thêm thư mục gốc vào sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.advice_generator import AdviceGenerator
 from src.context_builder import ContextBuilder
@@ -22,14 +21,24 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(
-    title="Phase 2 LLM Advice Engine API",
-    description="""
-    ## Hệ thống sinh lời khuyên tối ưu hóa giá phòng (AI Expert Advice)
-    """
-)
+app = FastAPI(title="Phase 2 LLM Advice Engine API (v1.2)")
 
-# --- Pydantic Models (API Contract) ---
+# --- Pydantic Models (Enhanced API Contract) ---
+
+class RoomMetrics(BaseModel):
+    inquiry_count: int = 0
+    reservation_count: int = 0
+    occupancy_rate: float = 0.0
+    conversion_rate: float = 0.0
+    revenue_30d: float = 0.0
+    previous_revenue_30d: float = 0.0
+
+class PeerComparison(BaseModel):
+    sample_size: int = 0
+    radius_km: float = 1.0
+    room_price_per_day: float = 0.0
+    peer_avg_price_per_day: float = 0.0
+    price_gap_pct: float = 0.0
 
 class SimulationFactors(BaseModel):
     price_gap_pct: float
@@ -38,7 +47,6 @@ class SimulationFactors(BaseModel):
     primary_action: str
     campaign_type: Optional[int] = None
     discount_targets: List[str] = []
-    discount_target_scope: Optional[str] = None
     hybrid_metrics: dict = {}
 
 class SimulationData(BaseModel):
@@ -49,45 +57,28 @@ class SimulationData(BaseModel):
     simulation_type: str
     simulation_factors: SimulationFactors
 
-class ActionCandidate(BaseModel):
-    type: str
-    label: str
-
 class ActionData(BaseModel):
     primary_action: str
-    candidate_actions: List[ActionCandidate]
-
-class FeeSnapshot(BaseModel):
-    components_daily: dict
-    total_effective_price_daily: float
-
-class RiskScoreData(BaseModel):
-    fee_snapshot: FeeSnapshot
+    candidate_actions: List[dict]
 
 class AdviceRequest(BaseModel):
     room_id: int
     partner_id: int
+    room_metrics: Optional[RoomMetrics] = Field(default_factory=RoomMetrics)
+    peer_comparison: Optional[PeerComparison] = Field(default_factory=PeerComparison)
     simulation_data: SimulationData
     action_data: ActionData
-    risk_score_data: RiskScoreData
+    risk_score_data: dict
 
-# --- Khởi tạo AdviceGenerator (Singleton) ---
-try:
-    generator = AdviceGenerator()
-    logger.info("AdviceGenerator initialized successfully for API service.")
-except Exception as e:
-    logger.error("Failed to initialize AdviceGenerator: %s", e)
-    # Không exit trên Vercel để tránh vòng lặp crash
-    generator = None
-
-# --- Endpoints ---
+# --- Khởi tạo AdviceGenerator ---
+generator = AdviceGenerator()
 
 @app.post("/api/v1/generate-advice")
 async def generate_advice(request: AdviceRequest):
     if not generator:
          raise HTTPException(status_code=500, detail="AdviceGenerator not initialized")
-         
-    logger.info(">>> Processing advice request for Room ID: %d", request.room_id)
+    
+    logger.info(">>> Processing Enhanced Advice Request for Room ID: %d", request.room_id)
     
     try:
         context = ContextBuilder.build_from_request(request)
@@ -110,11 +101,7 @@ async def generate_advice(request: AdviceRequest):
 
 @app.get("/health")
 async def health_check():
-    return {
-        "status": "healthy",
-        "service": "llm-advice-engine",
-        "version": "1.1.0"
-    }
+    return {"status": "healthy", "version": "1.2.0"}
 
 if __name__ == "__main__":
     import uvicorn

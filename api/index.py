@@ -90,8 +90,7 @@ async def generate_advice(request: AdviceRequest):
     logger.info(">>> Processing advice request for Room ID: %d", request.room_id)
     
     try:
-        payload = request.model_dump()
-        context = ContextBuilder.build_from_dict(payload)
+        context = ContextBuilder.build_from_request(request)
         advice, issues = generator.generate_single(context)
         
         if not advice:

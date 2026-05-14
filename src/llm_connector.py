@@ -1,13 +1,12 @@
 """
-LLM Connector - OpenRouter Edition
-Trách nhiệm: Gửi prompt tới OpenRouter API (OpenAI Compatible).
+LLM Connector - OpenRouter Edition (High Performance)
 """
 
 import logging
 import time
+import httpx
 from typing import Optional
 from openai import OpenAI
-
 
 from config.settings import (
     OPENROUTER_API_KEY,
@@ -24,38 +23,34 @@ from config.settings import (
 logger = logging.getLogger(__name__)
 
 class LLMConnectorError(Exception):
-    """Custom exception cho các lỗi liên quan đến LLM API."""
     pass
 
 class LLMConnector:
-    """Quản lý kết nối và giao tiếp với OpenRouter API."""
-
     def __init__(self) -> None:
-        """Khởi tạo OpenAI client cho OpenRouter."""
         if not OPENROUTER_API_KEY:
-            raise LLMConnectorError(
-                "OPENROUTER_API_KEY is missing! "
-                "Please add it to your environment variables or .env file."
-            )
+            raise LLMConnectorError("OPENROUTER_API_KEY is missing!")
+        
+        # Tối ưu hóa: Sử dụng HTTPX client với timeout và pooling tùy chỉnh
+        self.http_client = httpx.Client(
+            timeout=httpx.Timeout(60.0, connect=10.0),
+            limits=httpx.Limits(max_connections=10, max_keepalive_connections=5)
+        )
         
         self.client = OpenAI(
             base_url=OPENROUTER_BASE_URL,
             api_key=OPENROUTER_API_KEY,
+            http_client=self.http_client # Ép sử dụng pool kết nối
         )
         self.model_name = OPENROUTER_MODEL
-        logger.info("LLMConnector: Initialized with OpenRouter model %s", self.model_name)
+        logger.info("LLMConnector: Initialized with Optimized Connection Pool")
 
     def generate(self, system_prompt: str, user_prompt: str) -> str:
-        """Gửi prompt tới OpenRouter và trả về text response."""
         last_error: Optional[Exception] = None
 
         for attempt in range(1, API_MAX_RETRIES + 1):
             try:
+                # Gọi API với các tham số tối giản
                 response = self.client.chat.completions.create(
-                    extra_headers={
-                        "HTTP-Referer": OPENROUTER_SITE_URL,
-                        "X-Title": OPENROUTER_SITE_NAME,
-                    },
                     model=self.model_name,
                     messages=[
                         {"role": "system", "content": system_prompt},
@@ -63,20 +58,13 @@ class LLMConnector:
                     ],
                     temperature=GEMINI_TEMPERATURE,
                     max_tokens=GEMINI_MAX_OUTPUT_TOKENS,
+                    # Bỏ bớt extra_headers nếu không cần thiết để giảm kích thước request
                 )
-                text = response.choices[0].message.content.strip()
-                logger.info("API response received from OpenRouter (%d chars)", len(text))
-                return text
+                return response.choices[0].message.content.strip()
 
             except Exception as e:
                 last_error = e
-                wait_time = API_RETRY_BACKOFF_BASE ** attempt
-                logger.warning(
-                    "OpenRouter call failed (attempt %d/%d): %s. Retrying in %.1fs...",
-                    attempt, API_MAX_RETRIES, str(e), wait_time
-                )
-                time.sleep(wait_time)
-
-        raise LLMConnectorError(
-            f"OpenRouter API failed after {API_MAX_RETRIES} retries. Last error: {last_error}"
-        )
+                if attempt < API_MAX_RETRIES:
+                    time.sleep(API_RETRY_BACKOFF_BASE ** attempt)
+                
+        raise LLMConnectorError(f"API failed: {last_error}")

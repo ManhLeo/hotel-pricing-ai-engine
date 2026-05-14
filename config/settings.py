@@ -16,8 +16,6 @@ load_dotenv()
 # PATHS
 # ============================================================
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_INPUT_DIR = BASE_DIR / "data" / "input"
-DATA_OUTPUT_DIR = BASE_DIR / "data" / "output"
 PROMPTS_DIR = BASE_DIR / "prompts"
 
 # ============================================================
@@ -36,15 +34,8 @@ GEMINI_TOP_P: float = 0.8
 # ============================================================
 # RETRY & RATE LIMITING
 # ============================================================
-API_MAX_RETRIES: int = 3
+API_MAX_RETRIES: int = 2
 API_RETRY_BACKOFF_BASE: float = 2.0  # Exponential backoff: 2^n seconds
-API_REQUESTS_PER_MINUTE: int = 12  # An toàn hơn cho Gemini Flash free tier
-
-# ============================================================
-# PROCESSING
-# ============================================================
-BATCH_SIZE: int = 10  # Số phòng xử lý mỗi batch
-ONLY_RECOMMENDED: bool = True  # Chỉ generate advice cho is_recommended=1
 
 # ============================================================
 # VALIDATION (Anti-Hallucination)

@@ -153,8 +153,8 @@ class AdviceValidator:
         if context.risk_score is not None:
             valid_numbers.add(context.risk_score)
 
-        # Bổ sung các con số thời gian/tỷ lệ phổ biến trong tư vấn (7 ngày, 14 ngày, 100%)
-        valid_numbers.update({7.0, 14.0, 21.0, 30.0, 100.0})
+        # Bổ sung các con số thời gian/tỷ lệ phổ biến trong tư vấn (7 ngày, 10 ngày, 14 ngày, 100%)
+        valid_numbers.update({7.0, 10.0, 14.0, 21.0, 30.0, 100.0})
 
         # Loại bỏ các số quá nhỏ (1, 2, 3...) vì chúng xuất hiện
         # tự nhiên trong văn bản tiếng Việt
